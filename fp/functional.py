@@ -6,9 +6,17 @@ class Maybe(dict):
 
 # Functional class definition
 class Functional(object):
-    def __init__(self, func=None):
+    def __init__(self, auto_lift=True):
+        self.auto_lift = auto_lift
         self.funcs = []
-        self._add_func_(func)
+
+    def lift_all(self):
+        self.auto_lift = True
+        return self
+
+    def unlift_all(self):
+        self.auto_lift = False
+        return self
 
     def __getattr__(self, func):
         self._add_func_(func)
@@ -19,32 +27,37 @@ class Functional(object):
         for a in args:
             if callable(a):
                 is_func = True
-                self.funcs.append(a)
+                self._add_func_(a)
         if is_func:
             return self
         else:
-            return Functional.resolve_fs(*self.funcs)(*args,**kwargs)
+            return resolve_lifted_fs(*self.funcs)(*args,**kwargs)
 
     def _add_func_(self, func):
         if func is not None:
-            self.funcs.append(generic(func))
+            if self.auto_lift:
+                self.funcs.append(lift(func))
+            else:
+                self.funcs.append(func)
 
-    @staticmethod
-    def resolve_fs(*funcs):
-        def fs(_):
-            for f in funcs[::-1]:
-                _ = generic(f)(_)
-            return _
-        return fs
+def resolve_lifted_fs(*funcs):
+    def fs(_):
+        for f in funcs[::-1]:
+            _ = f(_)
+        return _
+    return fs
 
-# convert a general function into a function handles Maybe type
-def generic(f):
+def lift_n_resolve_fs(*funcs):
+    return resolve_lifted_fs(*[lift(f) for f in funcs])
+
+# lift a general function into a composible function handles Maybe type
+def lift(f):
     def gf(m):
         fm = Maybe()
         try:
             fm[0] = f(m[0])
         except Exception as e:
-            fm[1] = 'generic error: {0}'.format(e)
+            fm[1] = 'lifting error: {0}'.format(e)
         return fm
     return gf
 
@@ -62,4 +75,4 @@ def side_effect(func, except_func=None):
         finally:
             return m
     return f
-    
+

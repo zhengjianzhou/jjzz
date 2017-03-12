@@ -1,17 +1,20 @@
 #!/usr/bin/python
-from functional import Functional,Maybe,side_effect
+from functional import Functional,Maybe,side_effect,lift_n_resolve_fs
 from data import DATA_Num, DATA_Str, DATA_List
 from my_funcs import *
 
 DATA_1 = Maybe(DATA_Num)
 print '--------traditional--------'
-run_f = Functional.resolve_fs(*[sq,rt,sq,cube])
-#run_f = Functional.resolve_fs(*[sq,cube,rt])
-print run_f (DATA_1)
+run_f1 = lift_n_resolve_fs(*[sq,rt,sq,cube])
+run_f2 = lift_n_resolve_fs(*[sq,rt,sq,rt_m])
+print run_f1 (DATA_1)
+print run_f2 (DATA_1)
 print '---------------------------'
 
 print '--------functional---------'
 print Functional()(sq)(DATA_1)
+print Functional(False)(rt_m)(DATA_1)
+print Functional().unlift_all()(rt_m)(DATA_1)
 print '---------------------------'
 
 print '--------functional-break---'
