@@ -13,36 +13,48 @@ class Functional(object):
             return self
 
     def __call__(self, *args, **kwargs):
-        if args:
-            if callable(args[0]):
-                self.funcs.append(args[0])
+        for a in args:
+            if callable(a):
+                self.funcs.append(a)
                 return self
         return Functional.resolve_fs(*self.funcs)(*args,**kwargs)
 
     # side effect pass through
     def side_effect(self, func, except_func=None):
-        def f(*args, **kwargs):
+        def f(m):
             try:
-                func(*args, **kwargs)
+                func(m)
             except:
                 try:
                     if except_func:
-                        except_func(*args, **kwargs)
+                        except_func(m)
                 except:
                     pass
             finally:
-                return args #, **kwargs)
+                return m
         self.funcs.append(f)
         return self
     
     @staticmethod
     def resolve_fs(*funcs):
         def fs(_):
-            # f is a function takes (k, v) returns (k', v')
-            # from copy import deepcopy
-            # _ = deepcopy(_)
             for f in funcs[::-1]:
-                _ = { x:y for x,y in [f(k,v) for k,v in _.items()]}
+                _ = f(_)
             return _
         return fs
+
+def generic(f):
+    def gf(m):
+        fm = maybe()
+        try:
+            fm[0] = f(m[0])
+        except Exception as e:
+            fm[1] = 'generic error: {0}'.format(e)
+        return fm
+    return gf
+
+class maybe(dict):
+    def __init__(self, data=None, state=0):
+        super(maybe, self).__init__()
+        if data: self[state] = data
 

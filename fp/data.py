@@ -1,7 +1,6 @@
 # data definition
-DATA_DICT_1 = {
-    # 0: 2,
-    0: -2,
-    #1: 3,
-}
+
+DATA_Num = 3
+DATA_Str = 'James'
+DATA_List = [1,2,3]
 

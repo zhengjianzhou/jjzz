@@ -1,18 +1,16 @@
 # function definition
 import math
-def sq(k,v):
-    # print k,v
-    return (k, v*v) if k==0 else (1, '|=> sq error: from org {0}'.format(v))
+from functional import generic,maybe
 
-def cube(k,v):
-    # print k,v
-    return (k, v*v*v) if k==0 else (1, '|=> cube error: from org {0}'.format(v))
+def sq(m):
+    return generic(lambda x:x*x) (m)
 
-def rt(k,v):
-    # print k,v
-    return (0, math.sqrt(v)) if k==0 and v>=0 else (1,'|=> rt error:sqrt on minus')
+def cube(m):
+    return generic(lambda x:x*x*x) (m)
 
-def minus(k,v):
-    # print k,v
-    return (0, -v) if k==0 else (1,'|=> minus error: from org {0}'.format(v))
+def rt(m):
+    return maybe(math.sqrt(m[0])) if m.has_key(0) and m[0]>=0 else maybe('|=> rt error:sqrt on minus',1)
+
+def minus(m):
+    return generic(lambda x:-x) (m)
 
