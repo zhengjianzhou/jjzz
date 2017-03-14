@@ -1,6 +1,6 @@
 # function definition
 import math
-from functional import Maybe
+from maybe import Maybe
 
 sq    = lambda x:x*x
 cube  = lambda x:x*x*x
@@ -8,11 +8,11 @@ minus = lambda x:-x
 rt    = lambda x:math.sqrt(x)
 
 def rt_m(m):
-    if m.has_key(1):
-        return Maybe('|=> error from org {0}'.format(m), 1)
+    if m.state:
+        return m
     else:
-        if m.has_key(0) and m[0] >=0:
-            return Maybe(math.sqrt(m[0]))
+        if m.state == 0 and m.data >=0:
+            return Maybe(math.sqrt(m.data))
         else:
-            return Maybe('|=> error square root on a minus number: {0}'.format(m[0]), 1)
+            return Maybe('|=> error sqrt on a minus: {0}'.format(m), 1)
 

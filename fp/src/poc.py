@@ -1,5 +1,6 @@
 #!/usr/bin/python
-from functional import Functional,Maybe,side_effect,lift_n_resolve_fs
+from functional import Functional,side_effect,lift_n_resolve_fs,curry
+from maybe import Maybe
 from data import DATA_Num, DATA_Str, DATA_List
 from my_funcs import *
 
@@ -13,6 +14,9 @@ print '---------------------------'
 
 print '--------functional---------'
 print Functional()(sq)(DATA_1)
+print Functional() >> sq >> cube >> sq >> DATA_1
+print Functional() >> curry(lambda x,y:x+y, 5) >> sq >> DATA_1
+print Functional(False)(rt_m)(rt_m)(rt_m)(rt_m)(Maybe(-4))
 print Functional(False)(rt_m)(DATA_1)
 print Functional().unlift_all()(rt_m)(DATA_1)
 print '---------------------------'
@@ -37,6 +41,6 @@ print '---------------------------'
 
 DATA_3 = Maybe(DATA_List)
 print '--------functional-generic-'
-print Functional()(lambda x:len(x))(side_effect(print_state))(lambda x:x*2)(DATA_3)
+print Functional()(sq)(cube)(lambda x:len(x))(side_effect(print_state))(lambda x:x*2)(DATA_3)
 print '---------------------------'
 

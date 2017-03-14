@@ -1,8 +1,4 @@
-# Maybe class definition
-class Maybe(dict):
-    def __init__(self, data=None, state=0):
-        super(Maybe, self).__init__()
-        if data: self[state] = data
+from maybe import Maybe
 
 # Functional class definition
 class Functional(object):
@@ -22,7 +18,7 @@ class Functional(object):
         self._add_func_(func)
         return self
 
-    def __call__(self, *args, **kwargs):
+    def __rshift__(self, *args, **kwargs):
         is_func = False
         for a in args:
             if callable(a):
@@ -32,6 +28,9 @@ class Functional(object):
             return self
         else:
             return resolve_lifted_fs(*self.funcs)(*args,**kwargs)
+
+    def __call__(self, *args, **kwargs):
+        return self.__rshift__(*args,**kwargs)
 
     def _add_func_(self, func):
         if func is not None:
@@ -53,11 +52,10 @@ def lift_n_resolve_fs(*funcs):
 # lift a general function into a composible function handles Maybe type
 def lift(f):
     def gf(m):
-        fm = Maybe()
         try:
-            fm[0] = f(m[0])
+            fm = Maybe(f(m.data),0)
         except Exception as e:
-            fm[1] = 'lifting error: {0}'.format(e)
+            fm = Maybe('lifting error: {0}'.format(e),1)
         return fm
     return gf
 
@@ -74,5 +72,12 @@ def side_effect(func, except_func=None):
                 pass
         finally:
             return m
+    return f
+
+# curry
+def curry(func, a1):
+    def f(*args, **kwargs):
+        r = func(a1, *args, **kwargs)
+        return r
     return f
 
