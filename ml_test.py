@@ -1,10 +1,8 @@
-import sklearn as skl
+import yahoo_finance as yhf
 from sklearn import *
 
 def get_s(s_name, start, end):
     x = yhf.Share(s_name)
-    # print x.get_historical(start,end)
-    
     return [float(i['Close']) for i in x.get_historical(start,end)]
     
 def get_diff(arr):
@@ -12,14 +10,12 @@ def get_diff(arr):
     for i in range(len(arr) - 1):
         a.append(2.0*(arr[i+1] - arr[i])/(arr[i+1] + arr[i]))
     return [0] + a
-    
 
 x_names = 'MSFT|AAPL|GOOG|FB|TXN|INTC|AMZN'.split('|')
 y_name = 'BIDU'
 
 input_start, input_end = '2010-01-04', '2017-04-03'
-predict_start, predict_end = '2010-01-04', '2017-04-03'
-# predict_start, predict_end = '2010-01-05', '2017-04-04'
+predict_start, predict_end = '2010-01-05', '2017-04-04'
 
 train_X_all = zip(*[get_diff(get_s(i, input_start, input_end)) for i in x_names])
 train_Y_all = [1 if i>0 else 0 for i in get_diff(get_s(y_name, predict_start, predict_end))]
