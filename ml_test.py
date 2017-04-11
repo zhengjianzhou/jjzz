@@ -1,3 +1,4 @@
+import yahoo_finance as yhf
 from sklearn import *
 import os.path
 import pickle
@@ -5,12 +6,15 @@ import numpy as np
 import datetime as dt
 import pandas as pd
 
+# def next_biz_day(d):
+    # return d+dt.timedelta(days=1) if dt.date(2016,1,1).weekday() in range(5) else next_biz_day(d+dt.timedelta(days=1))
+
 FILE_PATH = 'c:\\Temp\\SS\\'
 x_names = 'MSFT|AAPL|GOOG|FB|INTC|AMZN|BIDU'.split('|')
 y_name = 'BIDU'
 percentage_for_training = 0.9
 
-se_dates = [dt.datetime(*d) for d in [(2016,1,4), (2017,4,3)]]
+se_dates = [dt.datetime(*d) for d in [(2013,1,3), (2017,4,3)]]
 # se_dates = [dt.datetime(*d) for d in [(2017,3,27), (2017,4,6)]]
 input_start,   input_end   = [d.strftime('%Y-%m-%d') for d in se_dates]
 se_dates = [d+dt.timedelta(days=1) for d in se_dates]
@@ -39,7 +43,7 @@ def sigmoid(z):
 def nomalize(arr):
     x = np.array(arr)
     min, max = x[np.argmin(x)], x[np.argmax(x)]
-    return (x - min) / (max - min)
+    return ((x - min) / (max - min))*2.0 -1
 
 def average(arr, ndays):
     a = [[arr[0]] * i + arr[:-i] if i>0 else arr for i in range(ndays)]
@@ -57,8 +61,8 @@ def merge_fs(fs):
 # training dataset selection
 lwfs = [
     # label,   weight, methods
-    ('Close',  3.0,    [get_s,            get_diff, nomalize, sigmoid]),
-    ('Open',   2.0,    [get_s,            get_diff, nomalize, sigmoid]),
+    ('Close',  5.0,    [get_s,            get_diff, nomalize, sigmoid]),
+    ('Open',   3.0,    [get_s,            get_diff, nomalize, sigmoid]),
     ('High',   1.0,    [get_s,            get_diff, nomalize, sigmoid]),
     ('Low',    1.0,    [get_s,            get_diff, nomalize, sigmoid]),
     ('Volume', 1.0,    [get_s,                      nomalize, sigmoid]),
@@ -70,8 +74,9 @@ lwfs = [
 train_X_all = zip(*[w*(merge_fs(fs)(i, input_start, input_end, l)) for i in x_names for l,w,fs in lwfs])
 train_Y_all = [1 if i>0 else 0 for i in get_diff(get_s(y_name, predict_start, predict_end, 'Close'))]
 
-
-if len(train_X_all) != len(train_Y_all): raise Exception("### Uneven input X({0}) and Y({1}), please Check!!!".format(len(train_X_all), len(train_Y_all)))
+print "Running for input X({0}) and Y({1})...".format(len(train_X_all), len(train_Y_all))
+if len(train_X_all) != len(train_Y_all):
+    raise Exception("### Uneven input X({0}) and Y({1}), please Check!!!".format(len(train_X_all), len(train_Y_all)))
 
 n_train_data = int(len(train_X_all)*percentage_for_training)
 
