@@ -69,7 +69,7 @@ x_names = 'MSFT|AAPL|GOOG|FB|INTC|AMZN|BIDU'.split('|')
 y_name = 'BIDU'
 percentage_for_training = 0.95
 
-se_dates = [dt.datetime(*d) for d in [(2013,1,3), (2017,4,12)]]
+se_dates = [dt.datetime(*d) for d in [(2013,1,3), (2017,10,20)]]
 print se_dates
 input_start,   input_end   = [d.strftime('%Y-%m-%d') for d in se_dates]
 se_dates = [next_biz_day(d) for d in se_dates]
