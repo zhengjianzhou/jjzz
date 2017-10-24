@@ -1,6 +1,6 @@
 import yahoo_finance as yhf
 from sklearn import *
-import os.path, os
+import os.path, os, sys
 import pickle
 import numpy as np
 import datetime as dt
@@ -15,8 +15,8 @@ def prev_biz_day(d):
     return pd if pd.weekday() in range(5) else prev_biz_day(pd)
 
 def get_raw(s_name, start, end):
-    FILE_PATH = '/tmp' # os.environ.get('TEMP')
-    file_name = FILE_PATH + '/' + s_name + start + end + '.txt'
+    FILE_PATH, PATH_SEPERATOR = (os.environ.get('TEMP'), '\\') if sys.platform.startswith('win') else (r'/tmp', '/')
+    file_name = FILE_PATH + PATH_SEPERATOR + s_name + start + end + '.txt'
     if os.path.isfile(file_name):
         with open(file_name,'r') as f:
             raw = pickle.load(f)
