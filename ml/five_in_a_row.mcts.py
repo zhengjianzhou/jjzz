@@ -27,11 +27,15 @@ def mc_tree_search(in_state, player, depth):
     state = in_state
     global Learner
     
-    for i in range(MC_GUESS_SIZE):
+    empties = sum([list(i).count(0) for i in in_state])
+    mc_size = min(empties,MC_GUESS_SIZE)
+    
+    for i in range(mc_size):
         i_state = copy.deepcopy(in_state)
         if depth <= 0:
             i_state, i_x, i_y = random_step(i_state, player)
-            i_score = Learner.predict(slicer(i_state))
+            i_score = Learner.predict(slicer(i_state))[0]
+            print "predicted:  i_x, i_y i_score",  i_x, i_y, i_score
         else:
             i_state, i_x, i_y, i_score = mc_tree_search(i_state, player, depth-1)
             
@@ -39,7 +43,8 @@ def mc_tree_search(in_state, player, depth):
             state = i_state
             score = i_score
             x, y = i_x, i_y
-    
+            
+    print "###player, depth, x, y, score", player, depth, x, y, score
     return state, x, y, score
 
 def random_step_adpator(in_state, player, _depth):
@@ -142,6 +147,10 @@ def runner(f_next_step, rounds = 100, depth=0, skip_print = 1):
             print ''.join([str(i) if i != 9 else '|' for i in slicer(state)])    
         
 
-runner(random_step_adpator, 300, 0, 100)
+runner(random_step_adpator, 1000, 0, 1000)
+print '### Finished 300 runs.'
 Learner = Learner.fit(traing_X, traing_Y)
-runner(mc_tree_search, 1, 2)
+print traing_X[:2]
+print traing_Y[:2]
+print '### Fitted with learner.'
+runner(mc_tree_search, 1, 1)
