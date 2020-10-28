@@ -1,4 +1,5 @@
-import yahoo_finance as yhf
+#import yahoo_finance as yhf
+import yfinance as yhf
 from sklearn import *
 import os.path, os, sys
 import pickle
@@ -21,13 +22,16 @@ def get_raw(s_name, start, end):
         with open(file_name,'r') as f:
             raw = pickle.load(f)
     else:
-        raw = yhf.Share(s_name).get_historical(start,end)
+        #raw = yhf.Share(s_name).get_historical(start,end)
+        raw = yhf.Ticker(s_name).history(start=start,end=start)
+        # sample: yhf.Ticker('AAPL').history(start='2020-01-01',end='2020-10-27') 
         with open(file_name,'w') as f:
             pickle.dump(raw, f)
     return raw
 
 def get_s(s_name, start, end, field):
-    return [float(i[field]) for i in get_raw(s_name, start, end)][::-1]
+    #return [float(i[field]) for i in get_raw(s_name, start, end)][::-1]
+    return [float(i) for i in get_raw(s_name, start, end)['Close']][::-1]
 
 def get_str(s_name, start, end, field):
     return [str(i[field]) for i in get_raw(s_name, start, end)][::-1]
