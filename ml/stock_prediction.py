@@ -74,7 +74,7 @@ y_name = 'BIDU'
 percentage_for_training = 0.95
 
 se_dates = [dt.datetime(*d) for d in [(2013,1,3), (2017,10,20)]]
-print se_dates
+print (se_dates)
 input_start,   input_end   = [d.strftime('%Y-%m-%d') for d in se_dates]
 se_dates = [next_biz_day(d) for d in se_dates]
 print se_dates
@@ -117,9 +117,9 @@ train_Y_all = get_diff(get_s(y_name, predict_start, predict_end, 'Close'))
 # train_Y_all_10 = [1 if i>0 else -1 for i in get_diff(get_s(y_name, predict_start, predict_end, 'Close'))]
 xx1 =  get_str(y_name, predict_start, predict_end, 'Date')
 xx2 =  get_s(y_name, predict_start, predict_end, 'Close')
-print zip(xx1,xx2)[-10:]
+print (zip(xx1,xx2)[-10:])
 
-print "Running for input X({0}) and Y({1})...".format(len(train_X_all), len(train_Y_all))
+print ("Running for input X({0}) and Y({1})...".format(len(train_X_all), len(train_Y_all)))
 if len(train_X_all) != len(train_Y_all):
     raise Exception("### Uneven input X({0}) and Y({1}), please Check!!!".format(len(train_X_all), len(train_Y_all)))
 
@@ -134,12 +134,12 @@ def fit_and_predict(sklnr, train_X, train_Y, test_X):
     actual_vs_predict = zip(*[test_Y, out_Y])
     matched_count = [1 if i[0]*i[1]>0 else 0 for i in actual_vs_predict]
     accuracy = 1.0* sum(matched_count)/len(matched_count)
-    print 'Accuracy: {0}% Train({1}):Test({2}) - Model: {3}'.format(
+    print ( 'Accuracy: {0}% Train({1}):Test({2}) - Model: {3}'.format(
         int(accuracy*1000)/10.0,
         len(train_Y),
         len(test_Y),
-        str(sklnr).replace('\n','')[:140])
-    print 'output: {}'.format(actual_vs_predict[-10:])
+        str(sklnr).replace('\n','')[:140]) )
+    print ( 'output: {}'.format(actual_vs_predict[-10:]) )
 
 # choose different learners
 learner = [
