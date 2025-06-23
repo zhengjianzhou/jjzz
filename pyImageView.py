@@ -156,7 +156,8 @@ else:
     folder = select_folder()
     if not folder:
         sys.exit(0)
-
+if folder == '.':
+    folder = os.getcwd()
 
 pygame.init()
 pygame.key.set_repeat(600, 100)
