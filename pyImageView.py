@@ -9,8 +9,14 @@ import time
 import random
 import tkinter as tk
 from tkinter import filedialog
+import pillow_heif
+import shutil
+import tempfile
+import atexit
+# Register HEIF/HEIC format with Pillow
+pillow_heif.register_heif_opener()
 
-SUPPORTED_FORMATS = {'.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp'}
+SUPPORTED_FORMATS = {'.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp', '.heic'}
 
 def get_first_image_dimensions(folder_path):
     folder = Path(folder_path)
@@ -25,6 +31,48 @@ global THUMB_HEIGHT
 THUMB_WIDTH = 128 *2
 THUMB_HEIGHT = 192 *2
 PERCOL_x2 = 8
+
+class FileUndoManager:
+    def __init__(self):
+        self.trash_stack = []  # Stack to track deleted files
+        self.tmp_dir = os.path.join(tempfile.gettempdir(), "pyimageview_undo_trash")
+
+        # Ensure temp dir exists
+        os.makedirs(self.tmp_dir, exist_ok=True)
+
+        # Register cleanup on app exit
+        atexit.register(self.cleanup)
+
+    def delete_file(self, filepath, idx):
+        if not os.path.isfile(filepath):
+            return
+
+        filename = os.path.basename(filepath)
+        tmp_path = os.path.join(self.tmp_dir, filename)
+
+        # Avoid filename collisions in tmp
+        i = 1
+        while os.path.exists(tmp_path):
+            tmp_path = os.path.join(self.tmp_dir, f"{filename}_{i}")
+            i += 1
+
+        shutil.move(filepath, tmp_path)
+        self.trash_stack.append((tmp_path, filepath, idx))
+
+    def undo_delete(self):
+        if not self.trash_stack:
+            return None, 0
+
+        tmp_path, original_path, idx = self.trash_stack.pop()
+        os.makedirs(os.path.dirname(original_path), exist_ok=True)
+        shutil.move(tmp_path, original_path)
+        return original_path, idx
+
+    def cleanup(self):
+        if os.path.exists(self.tmp_dir):
+            shutil.rmtree(self.tmp_dir)
+
+delete_manager = FileUndoManager()
 
 def set_thumbnail_size(folder):
     info = pygame.display.Info()
@@ -180,6 +228,8 @@ while running:
 
     for event in pygame.event.get():
         if event.type == QUIT:
+            pygame.display.iconify()
+            delete_manager.cleanup()
             running = False
 
         elif event.type == KEYDOWN:
@@ -192,13 +242,23 @@ while running:
                     in_image_view = False
                     scroll_y = ensure_visible(selected, cols, scroll_y, max_scroll, win_h)
                 else:
+                    pygame.display.iconify()
                     running = False
+
+            elif event.key in [K_u]:
+                try:
+                    file_undeleted, idx = delete_manager.undo_delete()
+                    if file_undeleted:
+                        images.insert(idx, file_undeleted)
+                except:
+                    pass
 
             elif event.key in (K_x, K_DELETE, K_RALT):
                 if images:
                     file_to_delete = images[selected]
                     try:
-                        os.remove(file_to_delete)
+                        # os.remove(file_to_delete)
+                        delete_manager.delete_file(file_to_delete, selected)
                         images.remove(file_to_delete)
                         thumbnail_cache.pop(file_to_delete, None)
                         full_image_cache.clear()
@@ -215,7 +275,7 @@ while running:
                         if selected >= len(images):
                             selected = max(0, len(images) - 1)
                     except Exception as e:
-                        print(f"Failed to delete: {e}")
+                        pass
 
             elif event.key in [K_SPACE, K_RETURN, K_RSHIFT]:
                 if slideshow_mode is not None:
@@ -259,7 +319,7 @@ while running:
                    selected = (selected - 1) % len(images)
                elif event.key == K_DOWN:
                    selected = min(len(images) - 1, selected + cols)
-               elif event.key in[K_TAB, K_t]:
+               elif event.key in[K_TAB, K_t, K_BACKSLASH]:
                    random.shuffle(images)
                elif event.key == K_UP:
                    selected = max(0, selected - cols)
